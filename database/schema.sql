@@ -11,10 +11,47 @@ CREATE TABLE users (
 
 -- Bảng categories (Danh mục thu/chi)
 CREATE TABLE categories (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT NOT NULL,
-  type transaction_type NOT NULL  -- Chỉ có thể là 'income' hoặc 'expense'
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name VARCHAR(100) NOT NULL,
+  type VARCHAR(20) NOT NULL CHECK (type IN ('income', 'expense')),
+  user_id UUID REFERENCES auth.users(id),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  
+  -- Đảm bảo tên danh mục không trùng lặp cho mỗi người dùng
+  UNIQUE(name, user_id)
 );
+
+-- Thêm một số danh mục mặc định
+INSERT INTO categories (name, type, user_id) VALUES
+  ('Lương', 'income', NULL),
+  ('Thưởng', 'income', NULL),
+  ('Đầu tư', 'income', NULL),
+  ('Quà tặng', 'income', NULL),
+  ('Ăn uống', 'expense', NULL),
+  ('Di chuyển', 'expense', NULL),
+  ('Mua sắm', 'expense', NULL),
+  ('Giải trí', 'expense', NULL),
+  ('Hóa đơn', 'expense', NULL),
+  ('Sức khỏe', 'expense', NULL),
+  ('Giáo dục', 'expense', NULL),
+  ('Khác', 'expense', NULL);
+
+-- Tạo policy để bảo mật dữ liệu
+CREATE POLICY "Người dùng có thể xem danh mục mặc định và danh mục của họ" 
+  ON categories FOR SELECT 
+  USING (user_id IS NULL OR user_id = auth.uid());
+
+CREATE POLICY "Người dùng chỉ có thể thêm danh mục cho chính họ" 
+  ON categories FOR INSERT 
+  WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "Người dùng chỉ có thể cập nhật danh mục của họ" 
+  ON categories FOR UPDATE 
+  USING (user_id = auth.uid());
+
+CREATE POLICY "Người dùng chỉ có thể xóa danh mục của họ" 
+  ON categories FOR DELETE 
+  USING (user_id = auth.uid());
 
 -- Bảng transactions (Giao dịch)
 CREATE TABLE transactions (
