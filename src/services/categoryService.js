@@ -1,4 +1,4 @@
-import { supabase } from '../utils/supabaseClient';
+import supabase from '../utils/supabaseClient';
 
 /**
  * Lấy danh sách danh mục
@@ -11,14 +11,14 @@ export const fetchCategories = async (userId) => {
       .from('categories')
       .select('*')
       .order('name');
-    
+
     // Nếu có userId, lọc theo user_id hoặc lấy các danh mục mặc định (user_id is null)
     if (userId) {
       query = query.or(`user_id.eq.${userId},user_id.is.null`);
     }
-    
+
     const { data, error } = await query;
-    
+
     if (error) throw error;
     return data || [];
   } catch (error) {
@@ -38,7 +38,7 @@ export const addCategory = async (categoryData) => {
       .from('categories')
       .insert([categoryData])
       .select();
-    
+
     if (error) throw error;
     return data[0];
   } catch (error) {
@@ -60,7 +60,7 @@ export const updateCategory = async (categoryId, updatedData) => {
       .update(updatedData)
       .eq('id', categoryId)
       .select();
-    
+
     if (error) throw error;
     return data[0];
   } catch (error) {
@@ -80,7 +80,7 @@ export const deleteCategory = async (categoryId) => {
       .from('categories')
       .delete()
       .eq('id', categoryId);
-    
+
     if (error) throw error;
   } catch (error) {
     console.error('Error deleting category:', error);
