@@ -5,6 +5,8 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 // Import the Category component (you'll need to create this)
 import CategoryManagement from './components/categories/CategoryManagement';
+// Import the UserManagement component (you'll need to create this)
+import UserManagement from './components/users/UserManagement';
 
 function App() {
   // Ví dụ về cách sử dụng supabase client
@@ -41,11 +43,15 @@ function App() {
             <li>
               <Link to="/categories" className="text-white hover:text-blue-300 transition-colors">Categories</Link>
             </li>
+            <li>
+              <Link to="/users" className="text-white hover:text-blue-300 transition-colors">Users</Link>
+            </li>
           </ul>
         </nav>
         
         <Routes>
           <Route path="/categories" element={<CategoryManagement />} />
+          <Route path="/users" element={<UserManagement />} />
           <Route path="/" element={
             <header className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
               <img src={logo} className="h-64 w-64 animate-spin" alt="logo" />

@@ -1,0 +1,12 @@
+.user-management-container {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.user-management-loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  color: #666;
+} 
