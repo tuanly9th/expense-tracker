@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import TransactionList from './TransactionList';
 import TransactionForm from './TransactionForm';
-import './TransactionManagement.css';
 import { fetchTransactions } from '../../services/transactionService';
 
 const TransactionManagement = () => {

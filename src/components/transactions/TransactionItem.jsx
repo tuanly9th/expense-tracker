@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { formatDate } from '../../utils/dateUtils';
 import TransactionForm from './TransactionForm';
-import './TransactionManagement.css';
 
 const TransactionItem = ({ transaction, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);

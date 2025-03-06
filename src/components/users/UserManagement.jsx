@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { getCurrentUser } from '../../services/userService';
 import AuthForm from './AuthForm';
 import UserProfile from './UserProfile';
-import './UserManagement.css';
 
 const UserManagement = () => {
   const [currentUser, setCurrentUser] = useState(null);

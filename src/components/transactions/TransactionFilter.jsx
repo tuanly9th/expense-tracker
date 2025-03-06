@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { fetchCategories } from '../../services/categoryService';
-import './TransactionManagement.css';
 
 const TransactionFilter = ({ onFilterChange }) => {
   const [categories, setCategories] = useState([]);

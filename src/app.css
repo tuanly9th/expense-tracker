@@ -1,2 +1,8 @@
 @import 'tailwindcss';
 @import './css/app-home.css';
+@import './css/UserProfile.css';
+@import './css/UserManagement.css';
+@import './css/AuthForm.css';
+@import './css/TransactionManagement.css';
+@import './css/CategoryManagement.css';
+@import './css/CategoryForm.css';

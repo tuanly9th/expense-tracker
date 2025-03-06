@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { addCategory, updateCategory } from '../../services/categoryService';
-import './CategoryForm.css';
 
 const CategoryForm = ({ userId, category, onSubmitSuccess }) => {
   const [formData, setFormData] = useState({

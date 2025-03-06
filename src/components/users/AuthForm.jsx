@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { signInWithEmail, signUpWithEmail } from '../../services/userService';
-import './AuthForm.css';
 
 const AuthForm = ({ onAuthSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);

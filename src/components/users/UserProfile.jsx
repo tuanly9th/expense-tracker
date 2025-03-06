@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { fetchUserData, updateUser, signOut } from '../../services/userService';
-import './UserProfile.css';
 
 const UserProfile = ({ userId, onSignOut }) => {
   const [userData, setUserData] = useState(null);

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchCategories, deleteCategory } from '../../services/categoryService';
 import CategoryForm from './CategoryForm';
-import './CategoryManagement.css';
 
 const CategoryManagement = ({ userId }) => {
   const [categories, setCategories] = useState([]);
