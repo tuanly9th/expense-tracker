@@ -148,4 +148,68 @@ export const getCurrentUser = async () => {
     console.error('Error getting current user:', error);
     return null;
   }
+};
+
+// Lấy tất cả người dùng
+export const getAllUsers = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*');
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách người dùng:', error);
+    throw error;
+  }
+};
+
+// Lấy thông tin người dùng theo ID
+export const getUserById = async (userId) => {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Lỗi khi lấy thông tin người dùng:', error);
+    throw error;
+  }
+};
+
+// Thêm người dùng mới
+export const addUser = async (userData) => {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .insert([userData])
+      .select();
+    
+    if (error) throw error;
+    return data[0];
+  } catch (error) {
+    console.error('Lỗi khi thêm người dùng:', error);
+    throw error;
+  }
+};
+
+// Xóa người dùng
+export const deleteUser = async (userId) => {
+  try {
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', userId);
+    
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Lỗi khi xóa người dùng:', error);
+    throw error;
+  }
 }; 

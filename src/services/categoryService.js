@@ -86,4 +86,54 @@ export const deleteCategory = async (categoryId) => {
     console.error('Error deleting category:', error);
     throw error;
   }
+};
+
+// Lấy tất cả danh mục
+export const getAllCategories = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .order('name');
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách danh mục:', error);
+    throw error;
+  }
+};
+
+// Lấy danh mục theo loại (thu nhập/chi tiêu)
+export const getCategoriesByType = async (type) => {
+  try {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .eq('type', type)
+      .order('name');
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error(`Lỗi khi lấy danh mục loại ${type}:`, error);
+    throw error;
+  }
+};
+
+// Lấy thông tin danh mục theo ID
+export const getCategoryById = async (categoryId) => {
+  try {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .eq('id', categoryId)
+      .single();
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Lỗi khi lấy thông tin danh mục:', error);
+    throw error;
+  }
 }; 

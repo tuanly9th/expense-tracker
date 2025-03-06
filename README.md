@@ -1,70 +1,120 @@
-# Getting Started with Create React App
+# Ứng dụng Quản lý Chi tiêu
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Ứng dụng đơn giản giúp theo dõi thu nhập và chi tiêu cá nhân.
 
-## Available Scripts
+## Tính năng
 
-In the project directory, you can run:
+- Quản lý thu nhập và chi tiêu
+- Phân loại giao dịch theo danh mục
+- Xem lịch sử giao dịch
+- Thống kê chi tiêu theo thời gian
 
-### `npm start`
+## Cài đặt
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Yêu cầu
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- Node.js (v14 trở lên)
+- npm hoặc yarn
+- Supabase account (miễn phí)
 
-### `npm test`
+### Các bước cài đặt
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. Clone repository:
+```bash
+git clone https://github.com/your-username/expense-tracker-app.git
+cd expense-tracker-app
+```
 
-### `npm run build`
+2. Cài đặt các dependencies:
+```bash
+npm install
+# hoặc
+yarn install
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+3. Tạo project trên Supabase:
+   - Đăng ký tài khoản tại [supabase.com](https://supabase.com)
+   - Tạo project mới
+   - Lấy URL và anon key từ project settings
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+4. Cấu hình Supabase:
+   - Tạo file `.env.local` tại thư mục gốc của project
+   - Thêm các biến môi trường:
+   ```
+   REACT_APP_SUPABASE_URL=your-supabase-url
+   REACT_APP_SUPABASE_ANON_KEY=your-supabase-anon-key
+   ```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+5. Thiết lập database:
+   - Mở SQL Editor trong Supabase dashboard
+   - Chạy script SQL từ file `database/simple_schema.sql`
 
-### `npm run eject`
+6. Khởi chạy ứng dụng:
+```bash
+npm start
+# hoặc
+yarn start
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Cấu trúc dự án
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```
+expense-tracker-app/
+├── database/                # SQL scripts
+│   └── simple_schema.sql    # Database schema
+├── public/                  # Static files
+├── src/
+│   ├── components/          # React components
+│   ├── services/            # API services
+│   ├── utils/               # Utility functions
+│   ├── App.jsx              # Main application
+│   └── index.js             # Entry point
+└── package.json             # Dependencies
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Cấu trúc database
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Bảng `users`
+- `id`: ID người dùng (primary key)
+- `name`: Tên người dùng
+- `email`: Email (unique)
+- `created_at`: Thời gian tạo
 
-## Learn More
+### Bảng `categories`
+- `id`: ID danh mục (primary key)
+- `name`: Tên danh mục
+- `type`: Loại danh mục ('income' hoặc 'expense')
+- `created_at`: Thời gian tạo
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Bảng `transactions`
+- `id`: ID giao dịch (primary key)
+- `user_id`: ID người dùng (foreign key)
+- `category_id`: ID danh mục (foreign key)
+- `amount`: Số tiền
+- `type`: Loại giao dịch ('income' hoặc 'expense')
+- `note`: Ghi chú
+- `created_at`: Thời gian tạo
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Hướng dẫn sử dụng
 
-### Code Splitting
+1. Chọn người dùng từ dropdown
+2. Nhấn nút "Thêm giao dịch mới" để tạo giao dịch
+3. Điền thông tin giao dịch và lưu
+4. Xem danh sách giao dịch ở phía dưới
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Phát triển
 
-### Analyzing the Bundle Size
+### Thêm tính năng mới
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+1. Thêm chức năng lọc và tìm kiếm giao dịch
+2. Thêm biểu đồ thống kê
+3. Thêm chức năng xuất báo cáo
 
-### Making a Progressive Web App
+### Cải thiện hiệu suất
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+1. Thêm phân trang cho danh sách giao dịch
+2. Tối ưu hóa các truy vấn database
 
-### Advanced Configuration
+## Giấy phép
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+MIT

@@ -6,26 +6,24 @@ import supabase from '../utils/supabaseClient';
  * @param {Object} filters - Các bộ lọc (startDate, endDate, type, categoryId)
  * @returns {Promise<Array>} Danh sách giao dịch
  */
-export const fetchTransactions = async (userId, filters = {}) => {
-  if (!userId) {
-    console.error('No user ID provided for fetching transactions');
-    return { data: [], error: 'User ID is required' };
-  }
-
+export const getTransactionsByUserId = async (userId, filters = {}) => {
   try {
     let query = supabase
       .from('transactions')
-      .select('*, category:category_id(*)')
+      .select(`
+        *,
+        categories(id, name, type),
+        users(id, name)
+      `)
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
-      
+    
     // Áp dụng các bộ lọc nếu có
     if (filters.startDate) {
       query = query.gte('created_at', new Date(filters.startDate).toISOString());
     }
     
     if (filters.endDate) {
-      // Thêm 1 ngày để bao gồm cả ngày kết thúc
       const endDate = new Date(filters.endDate);
       endDate.setDate(endDate.getDate() + 1);
       query = query.lt('created_at', endDate.toISOString());
@@ -38,14 +36,14 @@ export const fetchTransactions = async (userId, filters = {}) => {
     if (filters.categoryId) {
       query = query.eq('category_id', filters.categoryId);
     }
-
+    
     const { data, error } = await query;
-
+    
     if (error) throw error;
-    return { data, error: null };
+    return data;
   } catch (error) {
-    console.error('Error fetching transactions:', error);
-    return { data: [], error: error.message };
+    console.error('Lỗi khi lấy danh sách giao dịch:', error);
+    throw error;
   }
 };
 
@@ -54,18 +52,22 @@ export const fetchTransactions = async (userId, filters = {}) => {
  * @param {string} transactionId - ID của giao dịch
  * @returns {Promise<Object>} Thông tin giao dịch
  */
-export const fetchTransactionById = async (transactionId) => {
+export const getTransactionById = async (transactionId) => {
   try {
     const { data, error } = await supabase
       .from('transactions')
-      .select('*, category:category_id(*)')
+      .select(`
+        *,
+        categories(id, name, type),
+        users(id, name)
+      `)
       .eq('id', transactionId)
       .single();
-
+    
     if (error) throw error;
     return data;
   } catch (error) {
-    console.error('Error fetching transaction:', error);
+    console.error('Lỗi khi lấy thông tin giao dịch:', error);
     throw error;
   }
 };
@@ -77,25 +79,15 @@ export const fetchTransactionById = async (transactionId) => {
  */
 export const addTransaction = async (transactionData) => {
   try {
-    const newTransaction = {
-      ...transactionData,
-      created_at: new Date().toISOString()
-    };
-
-    // Kiểm tra xem đã có user_id chưa
-    if (!newTransaction.user_id) {
-      throw new Error('User ID is required');
-    }
-
     const { data, error } = await supabase
       .from('transactions')
-      .insert([newTransaction])
+      .insert([transactionData])
       .select();
-
+    
     if (error) throw error;
     return data[0];
   } catch (error) {
-    console.error('Error adding transaction:', error);
+    console.error('Lỗi khi thêm giao dịch:', error);
     throw error;
   }
 };
@@ -103,21 +95,21 @@ export const addTransaction = async (transactionData) => {
 /**
  * Cập nhật thông tin giao dịch
  * @param {string} transactionId - ID của giao dịch
- * @param {Object} updatedData - Dữ liệu cập nhật
+ * @param {Object} transactionData - Dữ liệu cập nhật
  * @returns {Promise<Object>} Giao dịch đã cập nhật
  */
-export const updateTransaction = async (transactionId, updatedData) => {
+export const updateTransaction = async (transactionId, transactionData) => {
   try {
     const { data, error } = await supabase
       .from('transactions')
-      .update(updatedData)
+      .update(transactionData)
       .eq('id', transactionId)
       .select();
-
+    
     if (error) throw error;
     return data[0];
   } catch (error) {
-    console.error('Error updating transaction:', error);
+    console.error('Lỗi khi cập nhật giao dịch:', error);
     throw error;
   }
 };
@@ -133,10 +125,11 @@ export const deleteTransaction = async (transactionId) => {
       .from('transactions')
       .delete()
       .eq('id', transactionId);
-
+    
     if (error) throw error;
+    return true;
   } catch (error) {
-    console.error('Error deleting transaction:', error);
+    console.error('Lỗi khi xóa giao dịch:', error);
     throw error;
   }
 };
@@ -150,37 +143,24 @@ export const deleteTransaction = async (transactionId) => {
  */
 export const getTransactionStats = async (userId, startDate, endDate) => {
   try {
-    const { data, error } = await fetchTransactions(userId, { startDate, endDate });
-
-    if (error) throw error;
-
-    // Make sure data is an array before using filter
-    if (!Array.isArray(data)) {
-      console.error('Expected data to be an array but got:', data);
-      return {
-        totalIncome: 0,
-        totalExpense: 0,
-        balance: 0,
-        categoryStats: []
-      };
-    }
-
-    const totalIncome = data
+    const transactions = await getTransactionsByUserId(userId, { startDate, endDate });
+    
+    const totalIncome = transactions
       .filter(t => t.type === 'income')
       .reduce((sum, t) => sum + parseFloat(t.amount), 0);
-
-    const totalExpense = data
+      
+    const totalExpense = transactions
       .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + parseFloat(t.amount), 0);
-
+    
     // Thống kê theo danh mục
     const categoryStats = {};
-    data.forEach(transaction => {
+    transactions.forEach(transaction => {
       const categoryId = transaction.category_id;
-      const categoryName = transaction.category?.name || 'Không có danh mục';
+      const categoryName = transaction.categories?.name || 'Không có danh mục';
       const type = transaction.type;
       const amount = parseFloat(transaction.amount);
-
+      
       if (!categoryStats[categoryId]) {
         categoryStats[categoryId] = {
           id: categoryId,
@@ -189,14 +169,14 @@ export const getTransactionStats = async (userId, startDate, endDate) => {
           expense: 0
         };
       }
-
+      
       if (type === 'income') {
         categoryStats[categoryId].income += amount;
       } else {
         categoryStats[categoryId].expense += amount;
       }
     });
-
+    
     return {
       totalIncome,
       totalExpense,
@@ -204,7 +184,87 @@ export const getTransactionStats = async (userId, startDate, endDate) => {
       categoryStats: Object.values(categoryStats)
     };
   } catch (error) {
-    console.error('Error getting transaction stats:', error);
+    console.error('Lỗi khi lấy thống kê giao dịch:', error);
+    throw error;
+  }
+};
+
+/**
+ * Lấy danh sách giao dịch với phân trang và sắp xếp
+ * @param {string} userId - ID của người dùng
+ * @param {Object} options - Các tùy chọn truy vấn
+ * @param {Object} options.filters - Các bộ lọc (startDate, endDate, type, categoryId)
+ * @param {number} options.page - Số trang (bắt đầu từ 1)
+ * @param {number} options.pageSize - Số lượng giao dịch mỗi trang
+ * @param {string} options.sortBy - Trường để sắp xếp (mặc định: 'created_at')
+ * @param {boolean} options.ascending - Sắp xếp tăng dần hay không (mặc định: false)
+ * @returns {Promise<Object>} Danh sách giao dịch và thông tin phân trang
+ */
+export const fetchTransactions = async (userId, options = {}) => {
+  try {
+    const {
+      filters = {},
+      page = 1,
+      pageSize = 10,
+      sortBy = 'created_at',
+      ascending = false
+    } = options;
+
+    // Tính toán phân trang
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    let query = supabase
+      .from('transactions')
+      .select(`
+        *,
+        categories(id, name, type),
+        users(id, name)
+      `, { count: 'exact' })
+      .eq('user_id', userId)
+      .order(sortBy, { ascending });
+    
+    // Áp dụng các bộ lọc nếu có
+    if (filters.startDate) {
+      query = query.gte('created_at', new Date(filters.startDate).toISOString());
+    }
+    
+    if (filters.endDate) {
+      const endDate = new Date(filters.endDate);
+      endDate.setDate(endDate.getDate() + 1);
+      query = query.lt('created_at', endDate.toISOString());
+    }
+    
+    if (filters.type) {
+      query = query.eq('type', filters.type);
+    }
+    
+    if (filters.categoryId) {
+      query = query.eq('category_id', filters.categoryId);
+    }
+
+    // Áp dụng phân trang
+    query = query.range(from, to);
+    
+    const { data, error, count } = await query;
+    
+    if (error) throw error;
+
+    // Tính toán thông tin phân trang
+    const totalPages = Math.ceil(count / pageSize);
+    
+    return {
+      transactions: data,
+      pagination: {
+        page,
+        pageSize,
+        totalItems: count,
+        totalPages,
+        hasMore: page < totalPages
+      }
+    };
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách giao dịch:', error);
     throw error;
   }
 };
