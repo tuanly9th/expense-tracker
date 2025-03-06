@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { getAllUsers } from './services/userService';
-import TransactionList from './components/transactions/TransactionList';
-import TransactionForm from './components/transactions/TransactionForm';
-import './App.css';
+import TransactionList from '../components/transactions/TransactionList';
+import TransactionForm from '../components/transactions/TransactionForm';
+import { getAllUsers } from '../services/userService';
 
-function App() {
+const TransactionsPage = () => {
   const [users, setUsers] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -68,9 +67,7 @@ function App() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold text-center">Ứng dụng Quản lý Chi tiêu</h1>
-      </header>
+      <h1 className="text-3xl font-bold mb-8">Quản lý Giao dịch</h1>
 
       <div className="mb-6">
         <label htmlFor="user-select" className="block text-gray-700 font-medium mb-2">
@@ -117,6 +114,6 @@ function App() {
       )}
     </div>
   );
-}
+};
 
-export default App; 
+export default TransactionsPage; 

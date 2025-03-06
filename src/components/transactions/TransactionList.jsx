@@ -1,103 +1,85 @@
 import React, { useState, useEffect } from 'react';
-import { fetchTransactions, deleteTransaction } from '../../services/transactionService';
-import TransactionItem from './TransactionItem';
-import TransactionFilter from './TransactionFilter';
-import './TransactionManagement.css';
+import { getTransactionsByUserId } from '../../services/transactionService';
+import { formatCurrency } from '../../utils/formatters';
 
 const TransactionList = ({ userId }) => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filters, setFilters] = useState({
-    startDate: null,
-    endDate: null,
-    type: '',
-    categoryId: ''
-  });
 
   useEffect(() => {
-    const loadTransactions = async () => {
+    const fetchTransactions = async () => {
       try {
         setLoading(true);
-        const data = await fetchTransactions(userId, filters);
+        const data = await getTransactionsByUserId(userId);
         setTransactions(data);
         setError(null);
       } catch (err) {
+        console.error('Lỗi khi tải giao dịch:', err);
         setError('Không thể tải danh sách giao dịch. Vui lòng thử lại sau.');
-        console.error('Error fetching transactions:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    loadTransactions();
-  }, [userId, filters]);
-
-  const handleDeleteTransaction = async (transactionId) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa giao dịch này?')) {
-      try {
-        await deleteTransaction(transactionId);
-        setTransactions(transactions.filter(t => t.id !== transactionId));
-      } catch (err) {
-        setError('Không thể xóa giao dịch. Vui lòng thử lại sau.');
-        console.error('Error deleting transaction:', err);
-      }
+    if (userId) {
+      fetchTransactions();
     }
+  }, [userId]);
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('vi-VN');
   };
 
-  const handleFilterChange = (newFilters) => {
-    setFilters({ ...filters, ...newFilters });
-  };
+  if (loading) {
+    return <div className="text-center py-4">Đang tải dữ liệu...</div>;
+  }
 
-  // Tính tổng thu nhập và chi tiêu
-  const totalIncome = transactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + parseFloat(t.amount), 0);
-  
-  const totalExpense = transactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+  if (error) {
+    return <div className="text-red-500 py-4">{error}</div>;
+  }
+
+  if (transactions.length === 0) {
+    return <div className="text-center py-4">Chưa có giao dịch nào.</div>;
+  }
 
   return (
-    <div className="transaction-list-container">
-      <h2>Danh sách giao dịch</h2>
+    <div className="transaction-list">
+      <h2 className="text-xl font-bold mb-4">Danh sách giao dịch</h2>
       
-      <div className="transaction-summary">
-        <div className="summary-item income">
-          <h3>Tổng thu nhập</h3>
-          <p>{totalIncome.toLocaleString()} VND</p>
-        </div>
-        <div className="summary-item expense">
-          <h3>Tổng chi tiêu</h3>
-          <p>{totalExpense.toLocaleString()} VND</p>
-        </div>
-        <div className="summary-item balance">
-          <h3>Số dư</h3>
-          <p>{(totalIncome - totalExpense).toLocaleString()} VND</p>
-        </div>
+      <div className="overflow-x-auto">
+        <table className="min-w-full bg-white border border-gray-200">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="py-2 px-4 border-b text-left">Ngày</th>
+              <th className="py-2 px-4 border-b text-left">Danh mục</th>
+              <th className="py-2 px-4 border-b text-left">Ghi chú</th>
+              <th className="py-2 px-4 border-b text-right">Số tiền</th>
+            </tr>
+          </thead>
+          <tbody>
+            {transactions.map((transaction) => (
+              <tr key={transaction.id} className="hover:bg-gray-50">
+                <td className="py-2 px-4 border-b">
+                  {formatDate(transaction.created_at)}
+                </td>
+                <td className="py-2 px-4 border-b">
+                  {transaction.categories?.name || 'Không có danh mục'}
+                </td>
+                <td className="py-2 px-4 border-b">
+                  {transaction.note || 'Không có ghi chú'}
+                </td>
+                <td className={`py-2 px-4 border-b text-right font-medium ${
+                  transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {transaction.type === 'income' ? '+' : '-'} {formatCurrency(transaction.amount)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-
-      <TransactionFilter onFilterChange={handleFilterChange} />
-
-      {error && <div className="error-message">{error}</div>}
-      
-      {loading ? (
-        <div className="loading">Đang tải dữ liệu...</div>
-      ) : transactions.length > 0 ? (
-        <div className="transaction-items">
-          {transactions.map(transaction => (
-            <TransactionItem 
-              key={transaction.id} 
-              transaction={transaction} 
-              onDelete={handleDeleteTransaction} 
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="no-transactions">
-          Không có giao dịch nào. Hãy thêm giao dịch mới!
-        </div>
-      )}
     </div>
   );
 };

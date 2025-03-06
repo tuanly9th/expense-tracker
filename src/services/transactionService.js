@@ -17,28 +17,28 @@ export const getTransactionsByUserId = async (userId, filters = {}) => {
       `)
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
-    
+
     // Áp dụng các bộ lọc nếu có
     if (filters.startDate) {
       query = query.gte('created_at', new Date(filters.startDate).toISOString());
     }
-    
+
     if (filters.endDate) {
       const endDate = new Date(filters.endDate);
       endDate.setDate(endDate.getDate() + 1);
       query = query.lt('created_at', endDate.toISOString());
     }
-    
+
     if (filters.type) {
       query = query.eq('type', filters.type);
     }
-    
+
     if (filters.categoryId) {
       query = query.eq('category_id', filters.categoryId);
     }
-    
+
     const { data, error } = await query;
-    
+
     if (error) throw error;
     return data;
   } catch (error) {
@@ -63,7 +63,7 @@ export const getTransactionById = async (transactionId) => {
       `)
       .eq('id', transactionId)
       .single();
-    
+
     if (error) throw error;
     return data;
   } catch (error) {
@@ -83,7 +83,7 @@ export const addTransaction = async (transactionData) => {
       .from('transactions')
       .insert([transactionData])
       .select();
-    
+
     if (error) throw error;
     return data[0];
   } catch (error) {
@@ -105,7 +105,7 @@ export const updateTransaction = async (transactionId, transactionData) => {
       .update(transactionData)
       .eq('id', transactionId)
       .select();
-    
+
     if (error) throw error;
     return data[0];
   } catch (error) {
@@ -125,7 +125,7 @@ export const deleteTransaction = async (transactionId) => {
       .from('transactions')
       .delete()
       .eq('id', transactionId);
-    
+
     if (error) throw error;
     return true;
   } catch (error) {
@@ -144,15 +144,15 @@ export const deleteTransaction = async (transactionId) => {
 export const getTransactionStats = async (userId, startDate, endDate) => {
   try {
     const transactions = await getTransactionsByUserId(userId, { startDate, endDate });
-    
+
     const totalIncome = transactions
       .filter(t => t.type === 'income')
       .reduce((sum, t) => sum + parseFloat(t.amount), 0);
-      
+
     const totalExpense = transactions
       .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + parseFloat(t.amount), 0);
-    
+
     // Thống kê theo danh mục
     const categoryStats = {};
     transactions.forEach(transaction => {
@@ -160,7 +160,7 @@ export const getTransactionStats = async (userId, startDate, endDate) => {
       const categoryName = transaction.categories?.name || 'Không có danh mục';
       const type = transaction.type;
       const amount = parseFloat(transaction.amount);
-      
+
       if (!categoryStats[categoryId]) {
         categoryStats[categoryId] = {
           id: categoryId,
@@ -169,14 +169,14 @@ export const getTransactionStats = async (userId, startDate, endDate) => {
           expense: 0
         };
       }
-      
+
       if (type === 'income') {
         categoryStats[categoryId].income += amount;
       } else {
         categoryStats[categoryId].expense += amount;
       }
     });
-    
+
     return {
       totalIncome,
       totalExpense,
@@ -223,36 +223,36 @@ export const fetchTransactions = async (userId, options = {}) => {
       `, { count: 'exact' })
       .eq('user_id', userId)
       .order(sortBy, { ascending });
-    
+
     // Áp dụng các bộ lọc nếu có
     if (filters.startDate) {
       query = query.gte('created_at', new Date(filters.startDate).toISOString());
     }
-    
+
     if (filters.endDate) {
       const endDate = new Date(filters.endDate);
       endDate.setDate(endDate.getDate() + 1);
       query = query.lt('created_at', endDate.toISOString());
     }
-    
+
     if (filters.type) {
       query = query.eq('type', filters.type);
     }
-    
+
     if (filters.categoryId) {
       query = query.eq('category_id', filters.categoryId);
     }
 
     // Áp dụng phân trang
     query = query.range(from, to);
-    
+
     const { data, error, count } = await query;
-    
+
     if (error) throw error;
 
     // Tính toán thông tin phân trang
     const totalPages = Math.ceil(count / pageSize);
-    
+
     return {
       transactions: data,
       pagination: {

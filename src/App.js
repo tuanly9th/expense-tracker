@@ -1,86 +1,121 @@
-import logo from './logo.svg';
-import supabase from './utils/supabaseClient';
-import React, { useEffect } from 'react';
-// Import React Router components
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-// Import the Category component (you'll need to create this)
-import CategoryManagement from './components/categories/CategoryManagement';
-// Import the UserManagement component (you'll need to create this)
-import UserManagement from './components/users/UserManagement';
-// Import the TransactionManagement component (you'll need to create this)
-import TransactionManagement from './components/transactions/TransactionManagement';
-import { AuthProvider } from './contexts/AuthContext';
+import React, { useState, useEffect } from 'react';
+import { getAllUsers } from './services/userService';
+import TransactionList from './components/transactions/TransactionList';
+import TransactionForm from './components/transactions/TransactionForm';
 
 function App() {
-  // Ví dụ về cách sử dụng supabase client
-  const fetchData = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*');
+  const [users, setUsers] = useState([]);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-      if (error) {
-        console.error('Lỗi khi truy vấn dữ liệu:', error);
-        return;
-      }
-
-      console.log('Dữ liệu nhận được:', data);
-    } catch (error) {
-      console.error('Lỗi:', error);
-    }
-  };
-
-  // Gọi fetchData khi component được mount
+  // Tải danh sách người dùng
   useEffect(() => {
-    fetchData();
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        const data = await getAllUsers();
+        setUsers(data);
+
+        // Tự động chọn người dùng đầu tiên nếu có
+        if (data.length > 0) {
+          setSelectedUserId(data[0].id);
+        }
+
+        setError(null);
+      } catch (err) {
+        console.error('Lỗi khi tải danh sách người dùng:', err);
+        setError('Không thể tải danh sách người dùng. Vui lòng thử lại sau.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
   }, []);
 
+  // Xử lý khi hoàn thành thêm/sửa giao dịch
+  const handleTransactionComplete = () => {
+    setShowForm(false);
+    // Có thể thêm logic để refresh danh sách giao dịch ở đây
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-xl">Đang tải dữ liệu...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-red-500 text-xl">{error}</div>
+      </div>
+    );
+  }
+
+  if (users.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-xl">Không có người dùng nào trong hệ thống.</div>
+      </div>
+    );
+  }
+
   return (
-    <AuthProvider>
-      <Router>
-        <div className="App">
-          <nav className="bg-gray-800 p-4">
-            <ul className="flex space-x-4">
-              <li>
-                <Link to="/" className="text-white hover:text-blue-300 transition-colors">Home</Link>
-              </li>
-              <li>
-                <Link to="/categories" className="text-white hover:text-blue-300 transition-colors">Categories</Link>
-              </li>
-              <li>
-                <Link to="/users" className="text-white hover:text-blue-300 transition-colors">Users</Link>
-              </li>
-              <li>
-                <Link to="/transactions" className="text-white hover:text-blue-300 transition-colors">Transactions</Link>
-              </li>
-            </ul>
-          </nav>
-          
-          <Routes>
-            <Route path="/categories" element={<CategoryManagement />} />
-            <Route path="/users" element={<UserManagement />} />
-            <Route path="/transactions" element={<TransactionManagement />} />
-            <Route path="/" element={
-              <header className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
-                <img src={logo} className="h-64 w-64 animate-spin" alt="logo" />
-                <p className="mt-8 text-xl">
-                  Edit <code className="bg-gray-800 px-2 py-1 rounded">src/App.js</code> and save to reload.
-                </p>
-                <a
-                  className="mt-4 text-blue-400 hover:text-blue-300 transition-colors"
-                  href="https://reactjs.org"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Learn React
-                </a>
-              </header>
-            } />
-          </Routes>
+    <div className="container mx-auto px-4 py-8">
+      <header className="mb-8">
+        <h1 className="text-3xl font-bold text-center">Ứng dụng Quản lý Chi tiêu</h1>
+      </header>
+
+      <div className="mb-6">
+        <label htmlFor="user-select" className="block text-gray-700 font-medium mb-2">
+          Chọn người dùng:
+        </label>
+        <select
+          id="user-select"
+          value={selectedUserId || ''}
+          onChange={(e) => setSelectedUserId(e.target.value)}
+          className="w-full md:w-64 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">-- Chọn người dùng --</option>
+          {users.map(user => (
+            <option key={user.id} value={user.id}>
+              {user.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {selectedUserId && (
+        <div className="mb-6">
+          <button
+            onClick={() => setShowForm(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            + Thêm giao dịch mới
+          </button>
         </div>
-      </Router>
-    </AuthProvider>
+      )}
+
+      {showForm && selectedUserId && (
+        <div className="mb-8">
+          <TransactionForm
+            userId={selectedUserId}
+            onComplete={handleTransactionComplete}
+            onCancel={() => setShowForm(false)}
+          />
+        </div>
+      )}
+
+      {selectedUserId && (
+        <TransactionList userId={selectedUserId} />
+      )}
+    </div>
   );
 }
 
-export default App;
+export default App; 
