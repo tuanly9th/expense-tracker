@@ -21,13 +21,15 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build && build:css",
+    "build": "react-scripts",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "watch:css": "npx @tailwindcss/cli -i ./src/app.css -o ./src/index.css --watch",
     "build:css": "npx @tailwindcss/cli -i ./src/app.css -o ./src/index.css",
+    "build:css-minify": "npx tailwindcss -i ./src/app.css -o ./src/index.css --minify",
     "postcss:css": "postcss src/index.css -o src/css/index.css --watch",
-    "dev": "npm-run-all --parallel watch:css start"
+    "dev": "npm-run-all --parallel watch:css start",
+    "build-minify": "npm run build:css-minify && react-scripts build"
   },
   "eslintConfig": {
     "extends": [
